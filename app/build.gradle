@@ -41,6 +41,7 @@ android {
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
+        coreLibraryDesugaringEnabled true
     }
     kotlinOptions {
         jvmTarget = '1.8'
@@ -110,6 +111,7 @@ dependencies {
     kapt "com.google.dagger:hilt-compiler:$hilt_version"
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
     implementation "androidx.room:room-paging:2.6.1"
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.0.4'   //пакет для времени (плюс 2 этап - флаг надо установить: см выше compileOptions:  coreLibraryDesugaringEnabled true )
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'

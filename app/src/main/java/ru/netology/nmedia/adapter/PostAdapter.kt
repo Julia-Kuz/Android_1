@@ -9,11 +9,18 @@ import android.widget.PopupMenu
 import androidx.core.view.isVisible
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.R
+import ru.netology.nmedia.chooseSeparator
+import ru.netology.nmedia.databinding.CardAdBinding
 import ru.netology.nmedia.databinding.FragmentCardPostBinding
+import ru.netology.nmedia.databinding.TimingSeparatorBinding
+import ru.netology.nmedia.dto.Ad
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.Separator
+import ru.netology.nmedia.dto.TimingSeparator
 import ru.netology.nmedia.load
 import ru.netology.nmedia.loadCircle
 import ru.netology.nmedia.numberRepresentation
@@ -34,20 +41,68 @@ interface OnInteractionListener {
 }
 
 class PostsAdapter(private val onInteractionListener: OnInteractionListener) :
-//    ListAdapter<Post, PostViewHolder>(PostDiffCallback()) {
-    PagingDataAdapter<Post, PostViewHolder>(PostDiffCallback()) {
+    PagingDataAdapter<FeedItem, RecyclerView.ViewHolder>(PostDiffCallback()) {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PostViewHolder {
-        val binding =
-            FragmentCardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return PostViewHolder(binding, onInteractionListener)
+    override fun getItemViewType(position: Int): Int {
+        return when (getItem(position)) {
+            is Ad -> R.layout.card_ad
+            is Post -> R.layout.fragment_card_post
+            is TimingSeparator -> R.layout.timing_separator
+            null -> throw IllegalArgumentException("unknown item type")
+        }
     }
 
-    override fun onBindViewHolder(holder: PostViewHolder, position: Int) {
-        val post = getItem(position)
-        if (post!=null) {
-            holder.bind(post)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
+        return when (viewType) {
+            R.layout.card_ad -> {
+                val binding =
+                    CardAdBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                AdViewHolder(binding)
+            }
+
+            R.layout.fragment_card_post -> {
+                val binding =
+                    FragmentCardPostBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                PostViewHolder(binding, onInteractionListener)
+            }
+
+            R.layout.timing_separator -> {
+                val binding = TimingSeparatorBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+                SeparatorViewHolder (binding)
+            }
+
+            else -> throw IllegalArgumentException("unknown view type: $viewType")
         }
+    }
+
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+
+        when (val item = getItem(position)) {
+            is Post -> (holder as? PostViewHolder)?.bind(item)
+            is Ad -> (holder as? AdViewHolder)?.bind(item)
+            is TimingSeparator -> (holder as? SeparatorViewHolder)?.bind(item)
+            null -> error("unknown item type")
+        }
+    }
+}
+
+
+class AdViewHolder(
+    private val binding: CardAdBinding
+) : RecyclerView.ViewHolder(binding.root) {
+
+    fun bind(ad: Ad) {
+        binding.image.load("${BuildConfig.BASE_URL}/media/${ad.image}")
+    }
+}
+
+class SeparatorViewHolder(
+    private val binding: TimingSeparatorBinding
+) : RecyclerView.ViewHolder(binding.root) {
+
+    fun bind(timingSeparator: TimingSeparator) {
+        binding.nameSeparator.text = timingSeparator.name
     }
 }
 
@@ -55,7 +110,9 @@ class PostViewHolder(
     private val binding: FragmentCardPostBinding,
     private val onInteractionListener: OnInteractionListener
 ) : RecyclerView.ViewHolder(binding.root) {
+
     fun bind(post: Post) {
+
         binding.apply {
             author.text = post.author
             published.text = SimpleDateFormat("dd MMM yyyy в HH:mm", Locale.getDefault())
@@ -158,12 +215,18 @@ class PostViewHolder(
     }
 }
 
-class PostDiffCallback : DiffUtil.ItemCallback<Post>() {
-    override fun areItemsTheSame(oldItem: Post, newItem: Post): Boolean {
+class PostDiffCallback : DiffUtil.ItemCallback<FeedItem>() {
+    override fun areItemsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
+
+        if (oldItem::class != newItem::class) {
+            return false
+        }
+
         return oldItem.id == newItem.id
+
     }
 
-    override fun areContentsTheSame(oldItem: Post, newItem: Post): Boolean {
+    override fun areContentsTheSame(oldItem: FeedItem, newItem: FeedItem): Boolean {
         return oldItem == newItem
     }
 }

@@ -1,5 +1,9 @@
 package ru.netology.nmedia.api
 
+import com.google.gson.GsonBuilder
+import com.google.gson.TypeAdapter
+import com.google.gson.stream.JsonReader
+import com.google.gson.stream.JsonWriter
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -11,6 +15,9 @@ import retrofit2.converter.gson.GsonConverterFactory
 import retrofit2.create
 import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
+import java.time.Instant
+import java.time.OffsetDateTime
+import java.time.ZoneId
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent :: class)
@@ -58,6 +65,25 @@ class ApiModule {
         .client(okhttp)
         .addConverterFactory(GsonConverterFactory.create())
         .build()
+    //для того, чтобы формат даты OffsetDateTime работал, т.к. с сервера приходит Long писать addConverterFactory сл.образом:
+//        .addConverterFactory(
+//            GsonConverterFactory.create(
+//                GsonBuilder().registerTypeAdapter(OffsetDateTime :: class.java,
+//                    object: TypeAdapter <OffsetDateTime> () {
+//
+//                        override fun write(out: JsonWriter?, value: OffsetDateTime?) {
+//                            out?.value(value?.toEpochSecond())
+//                        }
+//
+//                        override fun read(jsonReader: JsonReader): OffsetDateTime {
+//                            return OffsetDateTime.ofInstant(
+//                                Instant.ofEpochSecond(jsonReader.nextLong()), ZoneId.systemDefault()
+//                            )
+//                        }
+//                    }
+//                ).create()
+//            )
+//        )
 
     @Singleton
     @Provides

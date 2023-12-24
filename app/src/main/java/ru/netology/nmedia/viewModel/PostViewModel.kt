@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.toCollection
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import ru.netology.nmedia.auth.AppAuth
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.model.FeedModel
 import ru.netology.nmedia.model.FeedModelState
@@ -70,14 +71,20 @@ class PostViewModel @Inject constructor (
 //        }.asLiveData(Dispatchers.Default)
 
     //пагинация
-    val data: Flow<PagingData<Post>> = appAuth.authStateFlow
+    val data: Flow<PagingData<FeedItem>> = appAuth.authStateFlow
         .flatMapLatest { (myId, _) ->
-            repository.data.map { posts ->
-                posts.map { post ->
-                    post.copy(ownedByMe = post.authorId == myId)
+            repository.data.map { feedItemPagingData ->
+                feedItemPagingData.map { feedItem ->
+                    if (feedItem is Post) {
+                        feedItem.copy(ownedByMe = feedItem.authorId == myId)
+                    } else {
+                        feedItem
+                    }
                 }
             }
         }.flowOn(Dispatchers.Default)
+
+    val newerCount = repository.getNewerCount()
 
 
 //    val newerCount: LiveData<Int> = data.switchMap { //т.е. это пересоздание LiveData (data) при каждом изменении исходной/списка постов/
@@ -182,7 +189,7 @@ class PostViewModel @Inject constructor (
 //        val saved = data.value?.posts?.find { it.id == id }?.saved
 //        val flag = data.value?.posts?.find { it.id == id }?.likedByMe
 
-//        if (post.saved) {
+        if (post.saved) {
             viewModelScope.launch {
                 try {
                     repository.likeById(post.id, post.likedByMe)
@@ -191,7 +198,7 @@ class PostViewModel @Inject constructor (
                     _dataState.value = FeedModelState(error = true)
                 }
             }
- //       }
+        }
     }
 
 

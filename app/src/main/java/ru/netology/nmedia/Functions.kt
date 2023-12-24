@@ -1,12 +1,20 @@
 package ru.netology.nmedia
 
 import android.widget.ImageView
-import androidx.core.view.marginEnd
-import androidx.core.view.marginTop
 import androidx.paging.PagingData
 import androidx.paging.map
 import com.bumptech.glide.Glide
+import ru.netology.nmedia.dto.FeedItem
 import ru.netology.nmedia.dto.Post
+import ru.netology.nmedia.dto.Separator
+import ru.netology.nmedia.dto.TimingSeparator
+import java.time.Instant
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.OffsetDateTime
+import java.time.ZoneId
+import java.time.ZoneOffset
+
 
 fun numberRepresentation(number: Int): String {
 
@@ -46,12 +54,49 @@ fun ImageView.load (url: String) {
         .into(this)
 }
 
-fun transformPagingDataToList(pagingData: PagingData<Post>): List<Post> {
+fun transformPagingDataToList(pagingData: PagingData<FeedItem>): List<Post> {
     val list = mutableListOf<Post>()
-    pagingData.map { data ->
-        list.add(data)
+    pagingData.map { feedItem ->
+        if (feedItem is Post) {
+            list.add(feedItem)
+        }
     }
     return list.toList()
 }
 
+//***** Timing Separator
 
+class Time (post: Post?) {
+
+    private val today: OffsetDateTime = OffsetDateTime.now()
+    private val yesterday: OffsetDateTime = today.minusDays(1)
+    private val lastWeek: OffsetDateTime = today.minusDays(2)
+    private val postTime: OffsetDateTime? = if (post != null) {
+        Instant.ofEpochMilli(post.published*1000).atOffset(ZoneOffset.UTC)
+    } else null
+
+    fun isLastWeek(): Boolean =
+        lastWeek.year == postTime?.year && lastWeek.dayOfYear == postTime.dayOfYear
+
+    fun isYesterday(): Boolean =
+        yesterday.year == postTime?.year && yesterday.dayOfYear == postTime.dayOfYear
+
+    fun isToday(): Boolean =
+        today.year == postTime?.year && today.dayOfYear == postTime.dayOfYear
+
+}
+
+
+fun chooseSeparator (previous: Post?, next: Post?) : TimingSeparator? {
+    val previousPost = Time (previous)
+    val nextPost = Time (next)
+
+    return if (!previousPost.isToday() && nextPost.isToday() && next != null) {
+        TimingSeparator(Separator.TODAY, "Today")
+    } else if (!previousPost.isYesterday() && nextPost.isYesterday()) {
+        TimingSeparator (Separator.YESTERDAY, "Yesterday")
+    } else if (!previousPost.isLastWeek() && nextPost.isLastWeek()) {
+        TimingSeparator(Separator.TWO_WEEKS_AGO, "Two weeks ago")
+    }
+    else null
+}

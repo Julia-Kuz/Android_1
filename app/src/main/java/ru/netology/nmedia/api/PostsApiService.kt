@@ -20,6 +20,7 @@ import ru.netology.nmedia.BuildConfig
 import ru.netology.nmedia.auth.AppAuth
 import ru.netology.nmedia.auth.AuthState
 import ru.netology.nmedia.dto.Media
+import ru.netology.nmedia.dto.NewerCount
 import ru.netology.nmedia.dto.Post
 import ru.netology.nmedia.dto.PushToken
 
@@ -38,8 +39,8 @@ interface PostsApiService {
     @GET ("posts/{id}/after")
     suspend fun getAfter (@Path("id") id: Long, @Query("count") count: Int): Response <List <Post>>
 
-    @GET("posts/{id}/newer")
-    suspend fun getNewer(@Path("id") id: Long): Response<List<Post>>
+    @GET("posts/{id}/newer-count")
+    suspend fun getNewer(@Path("id") id: Long): Response<NewerCount>
 
     @POST("posts/{id}/likes")
     suspend fun likeById(@Path("id") id: Long): Response <Post>

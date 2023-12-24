@@ -43,5 +43,6 @@
     <string name="confirm_your_password">Подтвердите свой пароль</string>
     <string name="your_name">Ваше имя</string>
     <string name="remove_photo">Удалить фото</string>
+    <string name="ad_description">Реклама</string>
 
 </resources>

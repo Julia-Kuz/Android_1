@@ -43,6 +43,7 @@
     <string name="confirm_your_password">Confirm your password</string>
     <string name="your_name">Your name</string>
     <string name="remove_photo">Remove photo</string>
+    <string name="ad_description">ad</string>
 
 
 </resources>

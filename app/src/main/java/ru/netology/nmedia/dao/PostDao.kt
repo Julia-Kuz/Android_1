@@ -20,8 +20,11 @@ interface PostDao {
     @Query("SELECT * FROM PostEntity ORDER BY id DESC") //пагинация
     fun getPagingSource(): PagingSource<Int, PostEntity>
 
+    @Query("SELECT MAX(id) FROM PostEntity")
+    fun max(): Flow<Long?>
+
     @Query("DELETE FROM PostEntity")
-    suspend fun removeAll()
+    fun removeAll()
 
     @Insert (onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(post: PostEntity)
